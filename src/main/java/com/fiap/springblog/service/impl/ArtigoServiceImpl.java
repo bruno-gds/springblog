@@ -29,7 +29,7 @@ public class ArtigoServiceImpl implements ArtigoService {
     public Artigo obterPorCodigo(String codigo) {
         return this.artigoRepository
                 .findById(codigo)
-                .orElseThrow(() -> new IllegalArgumentException("Artigo não existe"));
+                .orElseThrow(() -> new IllegalArgumentException("Artigo não existe!"));
     }
 
     @Override
