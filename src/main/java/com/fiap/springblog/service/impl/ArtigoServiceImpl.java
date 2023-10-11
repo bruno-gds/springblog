@@ -6,9 +6,11 @@ import com.fiap.springblog.repository.ArtigoRepository;
 import com.fiap.springblog.repository.AutorRepository;
 import com.fiap.springblog.service.ArtigoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -66,6 +68,37 @@ public class ArtigoServiceImpl implements ArtigoService {
     public List<Artigo> findByDataGreaterThan(LocalDateTime data) {
         Query query = new Query(Criteria.where("data").gt(data));
 
-        return this.mongoTemplate.find(query, Artigo.class);
+        return mongoTemplate.find(query, Artigo.class);
+    }
+
+    @Override
+    public List<Artigo> findByDataAndStatus(LocalDateTime data, Integer status) {
+        Query query = new Query(Criteria.where("data").gt(data).and("status").is(status));
+
+        return mongoTemplate.find(query, Artigo.class);
+    }
+
+    @Override
+    public void atualizar(Artigo updatedArtigo) {
+        this.artigoRepository.save(updatedArtigo);
+    }
+
+    @Override
+    public void atualizarArtigo(String id, String novaUrl) {
+        Query query = new Query(Criteria.where("_id").is(id));
+        Update update = new Update().set("url", novaUrl);
+
+        this.mongoTemplate.updateFirst(query, update, Artigo.class);
+    }
+
+    @Override
+    public void deleteById(String id){
+        this.artigoRepository.deleteById(id);
+    }
+
+    @Override
+    public void deleteArtigoById(String id) {
+        Query query = new Query(Criteria.where("_id").is(id));
+        this.mongoTemplate.remove(query, Artigo.class);
     }
 }
