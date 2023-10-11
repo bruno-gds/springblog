@@ -6,7 +6,8 @@ import com.fiap.springblog.repository.ArtigoRepository;
 import com.fiap.springblog.repository.AutorRepository;
 import com.fiap.springblog.service.ArtigoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -73,7 +74,7 @@ public class ArtigoServiceImpl implements ArtigoService {
 
     @Override
     public List<Artigo> findByDataAndStatus(LocalDateTime data, Integer status) {
-        Query query = new Query(Criteria.where("data").gt(data).and("status").is(status));
+        Query query = new Query(Criteria.where("data").is(data).and("status").is(status));
 
         return mongoTemplate.find(query, Artigo.class);
     }
@@ -100,5 +101,43 @@ public class ArtigoServiceImpl implements ArtigoService {
     public void deleteArtigoById(String id) {
         Query query = new Query(Criteria.where("_id").is(id));
         this.mongoTemplate.remove(query, Artigo.class);
+    }
+
+    @Override
+    public List<Artigo> findByStatusAndDataGreaterThan(Integer status, LocalDateTime data) {
+        return this.artigoRepository.findByStatusAndDataGreaterThan(status, data);
+    }
+
+    @Override
+    public List<Artigo> obterArtigoPorDataHora(LocalDateTime de, LocalDateTime ate) {
+        return this.artigoRepository.obterArtigoPorDataHora(de, ate);
+    }
+
+    @Override
+    public List<Artigo> encontrarArtigosComplexos(Integer status, LocalDateTime data, String titulo) {
+        Criteria criteria = new Criteria();
+        criteria.and("data").lte(data);
+
+        if (status != null){
+            criteria.and("status").is(status);
+        }
+
+        if (titulo != null && !titulo.isEmpty()){
+            criteria.and("titulo").regex(titulo, "i");
+        }
+
+        Query query = new Query(criteria);
+
+        return this.mongoTemplate.find(query, Artigo.class);
+    }
+
+    @Override
+    public Page<Artigo> listaArtigos(Pageable pageable) {
+        return this.artigoRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Artigo> findByStatusOrderByTituloAsc(Integer status) {
+        return this.artigoRepository.findByStatusOrderByTituloAsc(status);
     }
 }

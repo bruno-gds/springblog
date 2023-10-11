@@ -3,6 +3,9 @@ package com.fiap.springblog.controller;
 import com.fiap.springblog.model.Artigo;
 import com.fiap.springblog.service.ArtigoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -68,5 +71,39 @@ public class ArtigoController {
     @DeleteMapping("/delete")
     public void deleteArtigoById(@RequestParam("Id") String id){
         this.artigoService.deleteArtigoById(id);
+    }
+
+    @GetMapping("/status-maiordata")
+    public List<Artigo> findByStatusAndDataGreaterThan(
+            @RequestParam("status") Integer status,
+            @RequestParam("data") LocalDateTime data){
+        return this.artigoService.findByStatusAndDataGreaterThan(status, data);
+    }
+
+    @GetMapping("/periodo")
+    public List<Artigo> obterArtigoPorDataHora(
+            @RequestParam("de") LocalDateTime de,
+            @RequestParam("ate") LocalDateTime ate){
+        return this.artigoService.obterArtigoPorDataHora(de, ate);
+    }
+
+    @GetMapping("/artigo-complexo")
+    public List<Artigo> encontrarArtigosComplexos(
+            @RequestParam(name = "status", required = false) Integer status,
+            @RequestParam("data") LocalDateTime data,
+            @RequestParam(name = "titulo", required = false) String titulo){
+        return this.artigoService.encontrarArtigosComplexos(status, data, titulo);
+    }
+
+    @GetMapping("/pagina-artigos")
+    public ResponseEntity<Page<Artigo>> listaArtigos(Pageable pageable){
+        Page<Artigo> artigos = this.artigoService.listaArtigos(pageable);
+
+        return ResponseEntity.ok(artigos);
+    }
+
+    @GetMapping("/status-ordenado")
+    public List<Artigo> findByStatusOrderByTituloAsc(@RequestParam("status") Integer status){
+        return this.artigoService.findByStatusOrderByTituloAsc(status);
     }
 }
