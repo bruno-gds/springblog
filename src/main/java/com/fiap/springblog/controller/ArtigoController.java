@@ -2,6 +2,7 @@ package com.fiap.springblog.controller;
 
 import com.fiap.springblog.model.Artigo;
 import com.fiap.springblog.model.ArtigoStatusCount;
+import com.fiap.springblog.model.AutorTotalArtigo;
 import com.fiap.springblog.service.ArtigoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -121,5 +123,12 @@ public class ArtigoController {
     @GetMapping("/contar-artigo")
     public List<ArtigoStatusCount> contarArtigosPorStatus(){
         return this.artigoService.contarArtigosPorStatus();
+    }
+
+    @GetMapping("/total-artigo-autor-periodo")
+    public List<AutorTotalArtigo> calcularTotalArtigosPorAutorNoPeriodo(
+            @RequestParam("dataInicio") LocalDate dataInicio,
+            @RequestParam("dataFim") LocalDate dataFim){
+        return this.artigoService.calcularTotalArtigosPorAutorNoPeriodo(dataInicio, dataFim);
     }
 }
