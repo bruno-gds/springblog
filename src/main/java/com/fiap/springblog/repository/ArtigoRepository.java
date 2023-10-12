@@ -26,4 +26,8 @@ public interface ArtigoRepository extends MongoRepository<Artigo, String> {
 
     Page<Artigo> findAll(Pageable pageable);
     public List<Artigo> findByStatusOrderByTituloAsc(Integer status);
+
+    // O NUMERO '1' INDICA QUE DEVE SER ORDENADO PELO TÍTULO DE FORMA ASCENDENTE, DESCENDENTE = -1
+    @Query(value = "{ 'status': { $eq: ?0 } }", sort = "{ 'titulo': 1 }")
+    public List<Artigo> obterArtigoPorStatusComOrdenacao(Integer status);
 }

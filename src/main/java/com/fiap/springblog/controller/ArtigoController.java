@@ -106,4 +106,14 @@ public class ArtigoController {
     public List<Artigo> findByStatusOrderByTituloAsc(@RequestParam("status") Integer status){
         return this.artigoService.findByStatusOrderByTituloAsc(status);
     }
+
+    @GetMapping("/status-query-ordenacao")
+    public List<Artigo> obterArtigoPorStatusComOrdenacao(@RequestParam("status") Integer status){
+        return this.artigoService.obterArtigoPorStatusComOrdenacao(status);
+    }
+
+    @GetMapping("/buscatexto")
+    public List<Artigo> findByTexto(@RequestParam("searchTerm") String searchTerm){
+        return this.artigoService.findByTexto(searchTerm);
+    }
 }
