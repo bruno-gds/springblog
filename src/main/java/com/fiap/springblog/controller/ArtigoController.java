@@ -1,6 +1,7 @@
 package com.fiap.springblog.controller;
 
 import com.fiap.springblog.model.Artigo;
+import com.fiap.springblog.model.ArtigoStatusCount;
 import com.fiap.springblog.service.ArtigoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -115,5 +116,10 @@ public class ArtigoController {
     @GetMapping("/buscatexto")
     public List<Artigo> findByTexto(@RequestParam("searchTerm") String searchTerm){
         return this.artigoService.findByTexto(searchTerm);
+    }
+
+    @GetMapping("/contar-artigo")
+    public List<ArtigoStatusCount> contarArtigosPorStatus(){
+        return this.artigoService.contarArtigosPorStatus();
     }
 }
