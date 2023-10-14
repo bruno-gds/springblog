@@ -8,6 +8,7 @@ import com.fiap.springblog.repository.ArtigoRepository;
 import com.fiap.springblog.repository.AutorRepository;
 import com.fiap.springblog.service.ArtigoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,6 +52,7 @@ public class ArtigoServiceImpl implements ArtigoService {
         return this.artigoRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Artigo obterPorCodigo(String codigo) {
         return this.artigoRepository
@@ -57,6 +60,7 @@ public class ArtigoServiceImpl implements ArtigoService {
                 .orElseThrow(() -> new IllegalArgumentException("Artigo não existe!"));
     }
 
+    @Transactional
     @Override
     public Artigo criar(Artigo artigo) {
         if (artigo.getAutor().getCodigo() != null){
@@ -68,7 +72,24 @@ public class ArtigoServiceImpl implements ArtigoService {
         } else {
             artigo.setAutor(null);
         }
-        return this.artigoRepository.save(artigo);
+
+        try {
+            return this.artigoRepository.save(artigo);
+        } catch (OptimisticLockingFailureException ex){
+            Artigo atualizado = artigoRepository.findById(artigo.getCodigo()).orElse(null);
+
+            if (atualizado != null){
+                atualizado.setTitulo(artigo.getTitulo());
+                atualizado.setTexto(artigo.getTexto());
+                atualizado.setStatus(artigo.getStatus());
+
+                atualizado.setVersion(atualizado.getVersion() + 1);
+
+                return this.artigoRepository.save(atualizado);
+            } else {
+                throw new RuntimeException("Artigo não encontrado: " + artigo.getCodigo());
+            }
+        }
     }
 
     @Override
@@ -85,11 +106,13 @@ public class ArtigoServiceImpl implements ArtigoService {
         return mongoTemplate.find(query, Artigo.class);
     }
 
+    @Transactional
     @Override
     public void atualizar(Artigo updatedArtigo) {
         this.artigoRepository.save(updatedArtigo);
     }
 
+    @Transactional
     @Override
     public void atualizarArtigo(String id, String novaUrl) {
         Query query = new Query(Criteria.where("_id").is(id));
@@ -98,6 +121,7 @@ public class ArtigoServiceImpl implements ArtigoService {
         this.mongoTemplate.updateFirst(query, update, Artigo.class);
     }
 
+    @Transactional
     @Override
     public void deleteById(String id){
         this.artigoRepository.deleteById(id);
