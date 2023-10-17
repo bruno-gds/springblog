@@ -1,13 +1,13 @@
-version: "3.7"
+version: '3.7'
+
 services:
   mongodb-blog:
     image: mongodb/mongodb-community-server:latest
-#    environment:
-#      - MONGO_INITDB_DATABASE=blog
+    environment:
+      - MONGO_INITDB_DATABASE=blog
 #      - MONGO_INITDB_ROOT_USERNAME=bruno
 #      - MONGO_INITDB_ROOT_PASSWORD=bruno
     ports:
       - "27017:27017"
     volumes:
-#      - ./db-data:/data/db
-      - ./db-data:/var/lib/mongodb
+      - ./db-data:/data/db
