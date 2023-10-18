@@ -46,9 +46,21 @@ public class ArtigoController {
         return this.artigoService.obterPorCodigo(codigo);
     }
 
+//    @PostMapping
+//    public Artigo criar(@RequestBody Artigo artigo){
+//        return this.artigoService.criar(artigo);
+//    }
+
     @PostMapping
-    public Artigo criar(@RequestBody Artigo artigo){
+    public ResponseEntity<?> criar(@RequestBody Artigo artigo){
         return this.artigoService.criar(artigo);
+    }
+
+    @PutMapping("/atualiza-artigo/{id}")
+    public ResponseEntity<?> atualizarArtigo(
+            @PathVariable("id") String id,
+            @RequestBody Artigo artigo){
+        return this.artigoService.atualizarArtigo(id, artigo);
     }
 
     @GetMapping("/maiordata")

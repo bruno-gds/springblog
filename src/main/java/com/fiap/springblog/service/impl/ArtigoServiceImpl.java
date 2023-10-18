@@ -8,6 +8,7 @@ import com.fiap.springblog.repository.ArtigoRepository;
 import com.fiap.springblog.repository.AutorRepository;
 import com.fiap.springblog.service.ArtigoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,8 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,12 +63,11 @@ public class ArtigoServiceImpl implements ArtigoService {
                 .orElseThrow(() -> new IllegalArgumentException("Artigo não existe!"));
     }
 
-    @Transactional
     @Override
-    public Artigo criar(Artigo artigo) {
+    public ResponseEntity<?> criar(Artigo artigo) {
+
         if (artigo.getAutor().getCodigo() != null){
-            Autor autor = this.autorRepository
-                    .findById(artigo.getAutor().getCodigo())
+            Autor autor = this.autorRepository.findById(artigo.getAutor().getCodigo())
                     .orElseThrow(() -> new IllegalArgumentException("Autor não existe!"));
 
             artigo.setAutor(autor);
@@ -74,23 +76,68 @@ public class ArtigoServiceImpl implements ArtigoService {
         }
 
         try {
-            return this.artigoRepository.save(artigo);
-        } catch (OptimisticLockingFailureException ex){
-            Artigo atualizado = artigoRepository.findById(artigo.getCodigo()).orElse(null);
-
-            if (atualizado != null){
-                atualizado.setTitulo(artigo.getTitulo());
-                atualizado.setTexto(artigo.getTexto());
-                atualizado.setStatus(artigo.getStatus());
-
-                atualizado.setVersion(atualizado.getVersion() + 1);
-
-                return this.artigoRepository.save(atualizado);
-            } else {
-                throw new RuntimeException("Artigo não encontrado: " + artigo.getCodigo());
-            }
+            this.artigoRepository.save(artigo);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (DuplicateKeyException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Artigo já existe na coleção!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao criar o Artigo: " + e.getMessage());
         }
     }
+
+    @Override
+    public ResponseEntity<?> atualizarArtigo(String id, Artigo artigo) {
+        try {
+            Artigo existingArtigo = this.artigoRepository.findById(id).orElse(null);
+
+            if (existingArtigo == null){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Artigo não encontrado na coleção!");
+            }
+
+            existingArtigo.setTitulo(artigo.getTitulo());
+            existingArtigo.setData(artigo.getData());
+            existingArtigo.setTexto(artigo.getTexto());
+
+            this.artigoRepository.save(existingArtigo);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao atualizar o Artigo: " + e.getMessage());
+        }
+    }
+
+//    @Transactional
+//    @Override
+//    public Artigo criar(Artigo artigo) {
+//        if (artigo.getAutor().getCodigo() != null){
+//            Autor autor = this.autorRepository
+//                    .findById(artigo.getAutor().getCodigo())
+//                    .orElseThrow(() -> new IllegalArgumentException("Autor não existe!"));
+//
+//            artigo.setAutor(autor);
+//        } else {
+//            artigo.setAutor(null);
+//        }
+//
+//        try {
+//            return this.artigoRepository.save(artigo);
+//        } catch (OptimisticLockingFailureException ex){
+//            Artigo atualizado = artigoRepository.findById(artigo.getCodigo()).orElse(null);
+//
+//            if (atualizado != null){
+//                atualizado.setTitulo(artigo.getTitulo());
+//                atualizado.setTexto(artigo.getTexto());
+//                atualizado.setStatus(artigo.getStatus());
+//
+//                atualizado.setVersion(atualizado.getVersion() + 1);
+//
+//                return this.artigoRepository.save(atualizado);
+//            } else {
+//                throw new RuntimeException("Artigo não encontrado: " + artigo.getCodigo());
+//            }
+//        }
+//    }
 
     @Override
     public List<Artigo> findByDataGreaterThan(LocalDateTime data) {
