@@ -52,10 +52,10 @@ public class ArtigoController {
 //        return this.artigoService.criar(artigo);
 //    }
 
-    @PostMapping
-    public ResponseEntity<?> criar(@RequestBody Artigo artigo){
-        return this.artigoService.criar(artigo);
-    }
+//    @PostMapping
+//    public ResponseEntity<?> criar(@RequestBody Artigo artigo){
+//        return this.artigoService.criar(artigo);
+//    }
 
     @PutMapping("/atualiza-artigo/{id}")
     public ResponseEntity<?> atualizarArtigo(

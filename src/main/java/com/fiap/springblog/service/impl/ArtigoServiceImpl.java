@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
@@ -23,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,6 +44,9 @@ public class ArtigoServiceImpl implements ArtigoService {
 
     @Autowired
     private AutorRepository autorRepository;
+
+    @Autowired
+    private MongoTransactionManager transactionManager;
 
     private final MongoTemplate mongoTemplate;
 
@@ -64,27 +69,47 @@ public class ArtigoServiceImpl implements ArtigoService {
     }
 
     @Override
-    public ResponseEntity<?> criar(Artigo artigo) {
+    public ResponseEntity<?> criarArtigoComAutor(Artigo artigo, Autor autor) {
 
-        if (artigo.getAutor().getCodigo() != null){
-            Autor autor = this.autorRepository.findById(artigo.getAutor().getCodigo())
-                    .orElseThrow(() -> new IllegalArgumentException("Autor não existe!"));
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
-            artigo.setAutor(autor);
-        } else {
-            artigo.setAutor(null);
-        }
-
-        try {
-            this.artigoRepository.save(artigo);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        } catch (DuplicateKeyException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Artigo já existe na coleção!");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao criar o Artigo: " + e.getMessage());
-        }
+        transactionTemplate.execute(status -> {
+            try {
+                autorRepository.save(autor);
+                artigo.setData(LocalDateTime.now());
+                artigo.setAutor(autor);
+                artigoRepository.save(artigo);
+            } catch (Exception e) {
+                status.setRollbackOnly();
+                throw new RuntimeException("Erro ao criar o Artigo com Autor: " + e.getMessage());
+            }
+            return null;
+        });
+        return null;
     }
+
+//    @Override
+//    public ResponseEntity<?> criar(Artigo artigo) {
+//
+//        if (artigo.getAutor().getCodigo() != null){
+//            Autor autor = this.autorRepository.findById(artigo.getAutor().getCodigo())
+//                    .orElseThrow(() -> new IllegalArgumentException("Autor não existe!"));
+//
+//            artigo.setAutor(autor);
+//        } else {
+//            artigo.setAutor(null);
+//        }
+//
+//        try {
+//            this.artigoRepository.save(artigo);
+//            return ResponseEntity.status(HttpStatus.CREATED).build();
+//        } catch (DuplicateKeyException e) {
+//            return ResponseEntity.status(HttpStatus.CONFLICT).body("Artigo já existe na coleção!");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Erro ao criar o Artigo: " + e.getMessage());
+//        }
+//    }
 
     @Override
     public ResponseEntity<?> atualizarArtigo(String id, Artigo artigo) {
