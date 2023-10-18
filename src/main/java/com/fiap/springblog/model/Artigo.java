@@ -1,5 +1,7 @@
 package com.fiap.springblog.model;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
@@ -21,13 +23,19 @@ public class Artigo {
     @Id
     private String codigo;
 
+    @NotBlank(message = "O Título do Artigo não pode estar em branco.")
     private String titulo;
+
+    @NotNull(message = "A Data do Artigo não pode ser nula.")
     private LocalDateTime data;
 
+    @NotBlank(message = "O Texto do Artigo não pode estar em branco.")
     @TextIndexed // PARA INDEXAR O CAMPO NO DB
     private String texto;
 
     private String url;
+
+    @NotNull(message = "O Status do Artigo não pode ser nulo.")
     private Integer status;
 
     @DBRef
