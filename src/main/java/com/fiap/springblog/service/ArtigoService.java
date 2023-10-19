@@ -24,6 +24,7 @@ public interface ArtigoService {
 //    public Artigo criar(Artigo artigo);
 //    public ResponseEntity<?> criar(Artigo artigo);
     public ResponseEntity<?> criarArtigoComAutor(Artigo artigo, Autor autor);
+    public void excluirArtigoEAutor(Artigo artigo);
     public ResponseEntity<?> atualizarArtigo(String id, Artigo artigo);
     public List<Artigo> findByDataGreaterThan(LocalDateTime data);
     public List<Artigo> findByDataAndStatus(LocalDateTime data, Integer status);

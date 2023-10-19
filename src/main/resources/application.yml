@@ -1,6 +1,8 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/blog
-      username:
-      password:
+      # retryWrites = Desabilita as re-tentativas de escrita no cluster
+      uri: mongodb://localhost:27040/blog?retryWrites=false
+#      uri: mongodb://localhost:27017/blog
+#      username:
+#      password:

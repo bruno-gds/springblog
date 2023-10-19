@@ -9,5 +9,6 @@ services:
 #      - MONGO_INITDB_ROOT_PASSWORD=bruno
     ports:
       - "27017:27017"
+      - "27040:27040"
     volumes:
       - ./db-data:/data/db

@@ -88,6 +88,24 @@ public class ArtigoServiceImpl implements ArtigoService {
         return null;
     }
 
+    @Override
+    public void excluirArtigoEAutor(Artigo artigo) {
+
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+        transactionTemplate.execute(status -> {
+            try {
+                artigoRepository.delete(artigo);
+                Autor autor = artigo.getAutor();
+                autorRepository.delete(autor);
+            } catch (Exception e) {
+                status.setRollbackOnly();
+                throw new RuntimeException("Erro ao excluir o Artigo e Autor: " + e.getMessage());
+            }
+            return null;
+        });
+    }
+
 //    @Override
 //    public ResponseEntity<?> criar(Artigo artigo) {
 //
